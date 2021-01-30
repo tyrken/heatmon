@@ -1,0 +1,14 @@
+apiVersion: 1
+
+providers:
+  - name: 'heatmon-initial-dashboards'
+    orgId: 1
+    # folder: ''
+    # folderUid: ''
+    type: file
+    disableDeletion: true
+    updateIntervalSeconds: 10
+    allowUiUpdates: true
+    options:
+      path: /etc/grafana/initial-dashboards
+      foldersFromFilesStructure: true

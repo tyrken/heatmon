@@ -1,0 +1,12 @@
+# Could slow the scrape/eval intervals down even more given TRVs only report every 2 mins
+# and cycle full stats every 15 mins or so
+# (if you want to save space & so extend the history limit that way)
+
+global:
+  scrape_interval:     60s
+  evaluation_interval: 60s
+
+scrape_configs:
+  - job_name: opentrv
+    static_configs:
+      - targets: ['localhost:8000']

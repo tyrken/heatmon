@@ -1,6 +1,18 @@
+## Project gitignore
+
+.vscode/
+build/
+dist/
+font5x8.bin
+heatmon.yaml
+sync*.sh
+
+## Python generic gitignore
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
+*.pyc
+*.pyo
+*.pyd
 *$py.class
 
 # C extensions

@@ -1,0 +1,13 @@
+# Local config for the heatmon system - rename this to "heatmon.yaml" as you edit it
+
+# The trv IDs and secure_key are large hex values ...
+# ... but as text strings so you can use optional spaces for readability
+
+trvs:
+  - id: f0 01 02 03 04 05 06 07
+    name: bedroom-1
+
+  - id: aa bb cc dd ee ff 11 22
+    name: upstairs-hallway
+
+secure_key: 00 11 22 33 44 55 66 77 88 99 aa bb cc dd ee ff

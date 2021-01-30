@@ -1,0 +1,14 @@
+[Unit]
+Description=heatmon
+After=network-online.service
+
+[Service]
+Type=simple
+WorkingDirectory=/opt/heatmon
+ExecStart=/opt/heatmon/bin/heatmon
+Restart=always
+User=root
+Group=root
+
+[Install]
+WantedBy=multi-user.target

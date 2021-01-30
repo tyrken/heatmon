@@ -1,0 +1,7 @@
+adafruit-circuitpython-ssd1306
+adafruit-circuitpython-rfm69
+cryptography
+prometheus_client
+pyserial
+ruamel.yaml
+# RPI.GPIO
