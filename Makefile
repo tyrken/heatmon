@@ -12,6 +12,10 @@ FONT_URL?=https://github.com/adafruit/Adafruit_CircuitPython_framebuf/raw/master
 	curl -LO $(FONT_URL)
 	touch .venv/done
 
+.venv/bin/heatmon: .venv/done
+	.venv/bin/python ./setup.py install
+	.venv/bin/python ./setup.py clean
+
 lint: .venv/done ## Run lint/check-formatting
 	.venv/bin/flake8 --count --exclude .venv
 	.venv/bin/black --check --diff --exclude .venv .
@@ -23,9 +27,8 @@ format: .venv/done ## Format code
 test: .venv/done ## pytest
 	python -m pytest
 
-run: .venv/done ## Run main.py
-	.venv/bin/python3 heatmon/main.py
-
+run: .venv/bin/heatmon ## Run main.py
+	heatmon
 
 install:  ## Install systemd service
 	sudo python3 -m venv --clear $(INSTALL_DIR)
@@ -51,11 +54,12 @@ logs: ## Show and follow service logs
 	journalctl -u heatmon -f
 
 reinstall:  ## Update systemd service source file
-	sudo rm -rf build/ dist/
+	sudo rm -rf build/ dist/ heatmon.egg-info/
 	sudo $(INSTALL_DIR)/bin/python ./setup.py install
 	sudo $(INSTALL_DIR)/bin/python ./setup.py clean
 	sudo systemctl enable heatmon
 	sudo systemctl restart heatmon
+	sudo rm -rf build/ dist/ heatmon.egg-info/
 
 uninstall: stop ## Uninstall systemd service
 	sudo rm -f /etc/systemd/system/heatmon.service

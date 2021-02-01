@@ -166,13 +166,15 @@ class Frame:
             status += "CFH "
         if self.fault:
             status += "FAULT "
+        if self.battery_low:
+            status += "BATLOW "
         if self.tamper:
             status += "TAMPER "
         if self.frost_risk:
             status += "FROST "
         return (
             f"{self.trv_name} #{self.message_counter} {self.valve_open_percent}%{status}"
-            f"{self.data[0]:x}/{self.data[1]:x} Occ{self.occupancy} {self.json_text}"
+            f"Occ{self.occupancy} {self.json_text}"
         )
 
     def debug(self):

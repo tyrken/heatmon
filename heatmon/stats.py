@@ -96,7 +96,7 @@ RELATIVE_HUMIDITY = Gauge(
     unit="ratio",
     labelnames=std_lables,
 )
-VACANCY = Gauge("vacancy", "TRV judged hours since occupied", unit="hours", labelnames=std_lables)
+VACANCY = Gauge("vacancy", "TRV time since occupied", unit="seconds", labelnames=std_lables)
 TARGET_TEMP = Gauge(
     "target_temperature", "TRV target temperature", unit="celsius", labelnames=std_lables
 )
@@ -132,7 +132,7 @@ JSON_STAT_TO_METRIC = {
     "R": RESET_COUNTER,
 }
 # Divisors to convert TRV scales or Light level to Prometheus standard base units
-UNIT_FACTOR = {"%": 100.0, "C16": 16.0, "cV": 100.0, "L": 255.0}
+UNIT_FACTOR = {"%": 100.0, "C16": 16.0, "cV": 100.0, "L": 255.0, "h": 1.0 / 3600}
 
 TRV_LAST_MESSAGE_COUNTER = {}
 TRV_LAST_REPORT_TIME = {}
@@ -164,60 +164,66 @@ DROP_WHEN_MISSING = [
 
 
 def recalc_recent_trv_count(now):
-    num_recent = 0
-    missing_trvs = []
-    for trv, x in TRV_LAST_REPORT_TIME.items():
-        if now - x < RECENT_MESSAGE_MAX_AGE:
-            num_recent += 1
-        else:
-            logging.info(f"Dropping metrics for missing trv: {trv}")
-            for metric in DROP_WHEN_MISSING:
-                try:
-                    metric.remove(trv)
-                except KeyError:
-                    pass
-            missing_trvs.append(trv)
-    for trv in missing_trvs:
+    to_remove = list(
+        (
+            trv
+            for trv, last_time in TRV_LAST_REPORT_TIME.items()
+            if now - last_time >= RECENT_MESSAGE_MAX_AGE
+        )
+    )
+    for trv in to_remove:
+        logging.info(f"Dropping metrics for missing trv: {trv}")
+        for metric in DROP_WHEN_MISSING:
+            try:
+                metric.remove(trv)
+            except KeyError:
+                pass
         TRV_LAST_REPORT_TIME.pop(trv)
-    # num_recent = sum(1 for x in TRV_LAST_REPORT_TIME.values() if now - x < RECENT_MESSAGE_MAX_AGE)
+    num_recent = len(TRV_LAST_REPORT_TIME)
     RECENT_REPORTING_TRVS.set(num_recent)
+    return num_recent
 
 
 def parse_stats(frame, rssi):
-    name = frame.trv_name
+    trv_name = frame.trv_name
 
-    RADIO_RSSI.labels(name).set(rssi)
+    RADIO_RSSI.labels(trv_name).set(rssi)
 
-    SUCCESSFUL_MESSAGES.labels(name).inc()
-    prev_mc = TRV_LAST_MESSAGE_COUNTER.get(name, -1000)
+    SUCCESSFUL_MESSAGES.labels(trv_name).inc()
+    prev_mc = TRV_LAST_MESSAGE_COUNTER.get(trv_name, -1000)
     diff = (frame.message_counter - prev_mc) - 1
-    if diff < 50:
-        SKIPPED_MESSAGES.labels(name).inc(diff)
-    TRV_LAST_MESSAGE_COUNTER[name] = frame.message_counter
+    if diff > 0 and diff < 1000:
+        SKIPPED_MESSAGES.labels(trv_name).inc(diff)
+    TRV_LAST_MESSAGE_COUNTER[trv_name] = frame.message_counter
 
     now = time.time()
-    TRV_LAST_REPORT_TIME[name] = now
-    LAST_REPORT_TIME.labels(name).set(now)
+    TRV_LAST_REPORT_TIME[trv_name] = now
+    LAST_REPORT_TIME.labels(trv_name).set(now)
     recalc_recent_trv_count(now)
 
-    if frame.valve_open_percent is not None:
-        VALVE_OPEN.labels(name).set(frame.valve_open_percent / 100.0)
+    if frame.valve_open_percent is None:
+        try:
+            VALVE_OPEN.remove(trv_name)
+        except KeyError:
+            pass
+    else:
+        VALVE_OPEN.labels(trv_name).set(frame.valve_open_percent / 100.0)
 
-    CALL_FOR_HEAT.labels(name).set(frame.call_for_heat)
-    FAULT.labels(name).set(frame.fault)
-    BATTERY_LOW.labels(name).set(frame.battery_low)
-    TAMPER.labels(name).set(frame.tamper)
-    OCCUPANCY1.labels(name).set(frame.occupancy)
-    FROST_RISK.labels(name).set(frame.frost_risk)
+    CALL_FOR_HEAT.labels(trv_name).set(frame.call_for_heat)
+    FAULT.labels(trv_name).set(frame.fault)
+    BATTERY_LOW.labels(trv_name).set(frame.battery_low)
+    TAMPER.labels(trv_name).set(frame.tamper)
+    OCCUPANCY1.labels(trv_name).set(frame.occupancy)
+    FROST_RISK.labels(trv_name).set(frame.frost_risk)
 
     for json_stat, value in json.loads(frame.json_text).items():
         metric = JSON_STAT_TO_METRIC.get(json_stat, "")
         if not metric:
             if metric == "":
-                logging.warning(f"Unknown JSON stat: {json_stat} from trv {name}")
+                logging.warning(f"Unknown JSON stat: {json_stat} from trv {trv_name}")
             continue
         if "|" in json_stat:
             unit = json_stat.split("|")[1]
             value /= UNIT_FACTOR.get(unit, 1.0)
         value /= UNIT_FACTOR.get(json_stat, 1.0)
-        metric.labels(name).set(value)
+        metric.labels(trv_name).set(value)

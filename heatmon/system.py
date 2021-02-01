@@ -74,7 +74,6 @@ class System:
             logging.info("Heatmon system starting to gather_stats")
 
             while True:
-                # packet, rssi = self.radio.wait_for_data()
                 packet, rssi = self.radio.wait_for_packet_queue()
                 frame = Frame(packet)
                 if frame.semi_ok():

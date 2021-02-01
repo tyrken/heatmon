@@ -29,7 +29,7 @@ EOF
 # Install prometheus (stores stats), the packaged version is a bit old but sufficient
 sudo apt-get install -y --no-install-recommends prometheus
 sudo cp files/prometheus.yml /etc/prometheus/prometheus.yml
-echo "ARGS=--storage.tsdb.retention.size=200MiB" | sudo tee -a /etc/default/prometheus
+echo 'ARGS="--storage.tsdb.retention.size=200MiB --storage.tsdb.retention.time=100d"' | sudo tee -a /etc/default/prometheus
 sudo systemctl restart prometheus
 # TODO: Update to more recent prometheus?
 # Could install prometheus-alertmanager for proper alerting, but not trivial to configure
