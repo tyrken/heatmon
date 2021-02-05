@@ -4,4 +4,4 @@ cryptography
 prometheus_client
 pyserial
 ruamel.yaml
-# RPI.GPIO
+RPi.GPIO

@@ -4,27 +4,29 @@ help: ## Prints this help message
 INSTALL_DIR?=/opt/heatmon
 FONT_URL?=https://github.com/adafruit/Adafruit_CircuitPython_framebuf/raw/master/examples/font5x8.bin
 
-.venv: ## Make raw virtualenv directory
+.venv:
 	python3 -m venv --clear .venv
 
-.venv/done: .venv dev-requirements.txt requirements.txt ## Populate virtualenv
+.venv/done: .venv dev-requirements.txt requirements.txt
 	.venv/bin/pip install -r dev-requirements.txt -r requirements.txt
 	curl -LO $(FONT_URL)
 	touch .venv/done
 
-.venv/bin/heatmon: .venv/done
+venv: .venv/done ## Make and fill local virtualenv
+
+.venv/bin/heatmon: venv
 	.venv/bin/python ./setup.py install
 	.venv/bin/python ./setup.py clean
 
-lint: .venv/done ## Run lint/check-formatting
+lint: venv ## Run lint/check-formatting
 	.venv/bin/flake8 --count --exclude .venv
 	.venv/bin/black --check --diff --exclude .venv .
 
-format: .venv/done ## Format code
+format: venv ## Format code
 	.venv/bin/black --exclude .venv .
 	.venv/bin/isort
 
-test: .venv/done ## pytest
+test: venv ## pytest
 	python -m pytest
 
 run: .venv/bin/heatmon ## Run main.py
