@@ -27,6 +27,8 @@ The setup script install Prometheus to collect & store stats, and Grafana for vi
 
 Note they use a fair amount of memory, but are powerful & you can enable emailed alerts if you edit the grafana override file to point at a valid SMTP server, e.g. from your ISP.
 
+See https://github.com/tyrken/heatmon/wiki/Completing-the-Raspberry-Pi-Setup for full docs.
+
 ### Long-term storage
 
 The current approx storage usage is a bit over 0.5 MB per TRV-day (very rough estimate!), but Prometheus is meant
