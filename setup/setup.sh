@@ -31,7 +31,7 @@ sudo apt-get install -y --no-install-recommends prometheus
 sudo cp files/prometheus.yml /etc/prometheus/prometheus.yml
 echo 'ARGS="--storage.tsdb.retention.size=200MiB --storage.tsdb.retention.time=100d"' | sudo tee -a /etc/default/prometheus
 sudo systemctl restart prometheus
-# TODO: Update to more recent prometheus?
+# Prometheus is a bit old, but will be better in the next Raspbian assuming that's based on Bullseye
 # Could install prometheus-alertmanager for proper alerting, but not trivial to configure
 
 # Install grafana for viewing stats & easy alerting
