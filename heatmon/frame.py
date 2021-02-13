@@ -12,7 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import itertools
 import logging
 
 from cryptography.exceptions import InvalidTag
@@ -39,7 +38,6 @@ class Frame:
         Frame.DECRYPTOR = AESGCM(key)
 
     def __init__(self, packet: bytearray):
-        # TODO: Simplify/optimise now debugging is over
         self.packet = packet
         self.frame_len = 0
         self.frame_type = -1
@@ -60,30 +58,31 @@ class Frame:
         self.data = bytes()
         self.json_text = ""
 
-        self.corrupt = packet is None or len(packet) < 7
+        self.corrupt = packet is None or len(packet) < 8
         self.unknown_trv = True
         if self.corrupt:
             return
 
-        self.frame_len = len(packet)
-        self.frame_type = int(packet[0])
-        self.corrupt = (
+        fifo_length = int(packet[0])
+        self.frame_len = len(packet) - 1
+        self.frame_type = int(packet[1])
+        self.corrupt = fifo_length != self.frame_len or (
             self.frame_type != Frame.OPEN_FRAME_TYPE and self.frame_type != Frame.SECURE_FRAME_TYPE
         )
-        self.seq_num = int(packet[1]) >> 4
-        self.id_len = int(packet[1]) & 0x0F
+        self.seq_num = int(packet[2]) >> 4
+        self.id_len = int(packet[2]) & 0x0F
         if self.id_len <= 0 or self.id_len > 8 or self.frame_len < (self.id_len + 4):
             self.corrupt = True
             return
-        self.id = bytes(packet[2 : 2 + self.id_len])
-        self.body_len = int(packet[2 + self.id_len])
+        self.id = bytes(packet[3 : 3 + self.id_len])
+        self.body_len = int(packet[3 + self.id_len])
         self.trailer_len = self.frame_len - (3 + self.id_len + self.body_len)
         if self.trailer_len < 1:
             self.corrupt = True
             return
-        body_start = 3 + self.id_len
+        body_start = 4 + self.id_len
         trailer_start = body_start + self.body_len
-        self.header = bytes(itertools.chain([self.frame_len], packet[:body_start]))
+        self.header = bytes(packet[:body_start])
         self.body = bytes(packet[body_start:trailer_start])
         self.trailer = bytes(packet[trailer_start:])
         if self.frame_type == Frame.OPEN_FRAME_TYPE:
@@ -149,9 +148,7 @@ class Frame:
                     )
 
     def semi_ok(self):
-        return self.frame_len > 4 and (
-            self.frame_type == Frame.SECURE_FRAME_TYPE or self.packet[1] == Frame.SECURE_FRAME_TYPE
-        )
+        return self.frame_len > 4 and self.frame_type == Frame.SECURE_FRAME_TYPE
 
     def has_data(self):
         return not self.corrupt and len(self.data) > 0

@@ -75,12 +75,13 @@ class Radio:
         self._rfm69.idle()
         fifo_length = self._rfm69._read_u8(Radio.REG_FIFO)
         if fifo_length > 0:
-            # TODO: Add length byte at start of received packet - needed for decyption
-            packet = bytearray(fifo_length)
-            self._rfm69._read_into(Radio.REG_FIFO, packet, fifo_length)
+            packet = bytearray(fifo_length + 1)
+            packet[0] = fifo_length
+            self._rfm69._read_into(Radio.REG_FIFO, memoryview(packet)[1:], fifo_length)
         self._rfm69.listen()
         if fifo_length > 0:
             try:
+                # packet includes its length byte at the start
                 self._packet_queue.put((packet, rssi), timeout=1)
             except Full:
                 logging.warning("Dropping packet as queue full!")
