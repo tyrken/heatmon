@@ -15,9 +15,8 @@ export PATH:=$(CURDIR)/.venv/bin:$(PATH)
 
 venv: .venv/done ## Make and fill local virtualenv
 
-.venv/bin/heatmon: venv
-	python ./setup.py install
-	python ./setup.py clean
+.venv/bin/heatmon: .venv/done
+	python ./setup.py develop
 
 lint: venv ## Run lint/check-formatting
 	flake8 --count --exclude .venv
