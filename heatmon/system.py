@@ -22,7 +22,7 @@ from ruamel.yaml import YAML
 from .display import Display
 from .frame import Frame
 from .radio import Radio
-from .stats import parse_stats, recalc_recent_trv_count
+from .stats import get_stat_summaries, parse_stats, recalc_recent_trv_count
 
 
 class TRV:
@@ -64,25 +64,34 @@ class System:
         try:
             self.display = Display()
             self.display.clear()
-            self.display.append_line("Heatmon starting...")
+            self.display.set_line(0, "Heatmon starting...")
             self.display.show_lines()
 
             self.radio = Radio()
 
-            self.display.append_line("Heatmon started.")
+            self.display.set_line(0, "Heatmon started")
             self.display.show_lines()
             logging.info("Heatmon system starting to gather_stats")
 
+            last_report_time = "never"
             while True:
                 packet, rssi = self.radio.wait_for_packet_queue()
                 frame = Frame(packet)
                 if frame.semi_ok():
                     logging.info(f"Packet: {frame.one_line_summary()}")
                     # frame.debug()
+                now = time.time()
                 if not frame.corrupt and frame.json_text:
                     parse_stats(frame, rssi)
                     logging.info(f"RSSI {rssi} dBm")
-                recalc_recent_trv_count(time.time())
+                    last_report_time = time.strftime("%H:%M", time.localtime(now))
+                num_recent = recalc_recent_trv_count(now)
+
+                self.display.set_line(0, f"TRVs: {num_recent}, last: {last_report_time}")
+                temp_summary, battery_valve_summary = get_stat_summaries()
+                self.display.set_line(1, temp_summary)
+                self.display.set_line(2, battery_valve_summary)
+                self.display.show_lines()
         finally:
             if self.radio:
                 self.radio.reset()
