@@ -13,24 +13,23 @@ export PATH:=$(CURDIR)/.venv/bin:$(PATH)
 	curl -LO $(FONT_URL)
 	touch .venv/done
 
-venv: .venv/done ## Make and fill local virtualenv
+heatmon.egg-info: .venv/done
+	python ./setup.py develop
 
-.venv/bin/heatmon: venv
-	python ./setup.py install
-	python ./setup.py clean
+venv: heatmon.egg-info ## Make and fill local virtualenv
 
-lint: venv ## Run lint/check-formatting
+lint: .venv/done ## Run lint/check-formatting
 	flake8 --count --exclude .venv
 	black --check --diff --exclude .venv .
 
-format: venv ## Format code
+format: .venv/done ## Format code
 	black --exclude .venv .
 	isort
 
-test: venv ## pytest
+test: .venv/done ## pytest
 	python -m pytest
 
-run: .venv/bin/heatmon ## Run main.py
+run: heatmon.egg-info ## Run main.py
 	heatmon
 
 install:  ## Install systemd service
@@ -59,7 +58,6 @@ logs: ## Show and follow service logs
 reinstall:  ## Update systemd service source file
 	sudo rm -rf build/ dist/ heatmon.egg-info/
 	sudo $(INSTALL_DIR)/bin/python ./setup.py install
-	sudo $(INSTALL_DIR)/bin/python ./setup.py clean
 	sudo systemctl enable heatmon
 	sudo systemctl restart heatmon
 	sudo rm -rf build/ dist/ heatmon.egg-info/

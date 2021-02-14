@@ -17,8 +17,6 @@ import board
 import busio
 from digitalio import DigitalInOut
 
-# TODO: Display number of recent TRVs, last report time, min-max temp & battery volts, call-for-heat
-
 
 class Display:
     def __init__(self):
@@ -37,20 +35,21 @@ class Display:
         self._max_text_lines = 3
         self._text = []
 
-    def clear(self):
-        self._display.fill(0)
-        self._display.show()
+    def clear(self, display=True):
         self._text = []
+        if display:
+            self._display.fill(0)
+            self._display.show()
 
     def append_line(self, text):
+        if len(self._text) >= self._max_text_lines:
+            raise RuntimeError(f"Too many lines appended: {','.join(self._text)},{text}")
         self._text.append(text)
-        if len(self._text) > self._max_text_lines:
-            raise RuntimeError("Too many lines appended: " + (",".join(self._text)))
 
-    def set_line(self, text, line_num=0):
+    def set_line(self, line_num, text):
         if line_num >= self._max_text_lines:
             raise RuntimeError(f"Setting line {line_num} but should be <{self._max_text_lines}")
-        while len(self._text) < line_num:
+        while len(self._text) <= line_num:
             self._text.append("")
         self._text[line_num] = text
 

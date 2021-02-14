@@ -111,7 +111,6 @@ SETBACK_TEMP = Gauge(
 # Not sure of meaning of these metrics
 SETBACK_LOCKOUT = Gauge("setback_lockout", "???", labelnames=std_lables)
 ERROR_REPORT = Gauge("error_report", "???", labelnames=std_lables)
-VALVE_STATUS = Gauge("valve_status", "???", unit="ratio", labelnames=std_lables)
 RESET_COUNTER = Gauge("reset_counter", "???", labelnames=std_lables)
 
 
@@ -128,7 +127,7 @@ JSON_STAT_TO_METRIC = {
     "gE": SETBACK_LOCKOUT,
     "gP": None,  # ???
     "err": ERROR_REPORT,
-    "v|%": VALVE_STATUS,  # Duplicate with value at start of body
+    "v|%": VALVE_OPEN,  # Duplicate with value at start of body
     "R": RESET_COUNTER,
 }
 # Divisors to convert TRV scales or Light level to Prometheus standard base units
@@ -158,7 +157,7 @@ DROP_WHEN_MISSING = [
     SETBACK_TEMP,
     SETBACK_LOCKOUT,
     ERROR_REPORT,
-    VALVE_STATUS,
+    VALVE_OPEN,
     RESET_COUNTER,
 ]
 
@@ -227,3 +226,19 @@ def parse_stats(frame, rssi):
             value /= UNIT_FACTOR.get(unit, 1.0)
         value /= UNIT_FACTOR.get(json_stat, 1.0)
         metric.labels(trv_name).set(value)
+
+
+def get_stat_summaries():
+    # Summary across all TRVs
+    min_room_temp = 50
+    max_room_temp = 0
+    for _, _, value in ROOM_TEMP._samples():
+        min_room_temp = min(min_room_temp, value)
+        max_room_temp = max(max_room_temp, value)
+    temp_summary = "Waiting for room temps..."
+    if min_room_temp < 50:
+        temp_summary = f"Temps: {min_room_temp:.1f} - {max_room_temp:.1f}"
+    min_battery = min((value for _, _, value in BATTERY_VOLTAGE._samples()), default="...",)
+    max_valve = max((int(value * 100) for _, _, value in VALVE_OPEN._samples()), default="...",)
+    battery_valve_summary = f"Bmin {min_battery}V, Vmax {max_valve}%"
+    return temp_summary, battery_valve_summary

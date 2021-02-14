@@ -588,7 +588,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(cumulative_valve_total{trv=\"$TRV\"}[20m])*3600",
+          "expr": "rate(cumulative_valve_total{trv=\"$TRV\"}[20m])*3600",
           "interval": "",
           "legendFormat": "{{trv}}",
           "refId": "A"
@@ -684,7 +684,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(messages_missed_total{trv=\"$TRV\"}[20m])*3600.0",
+          "expr": "rate(messages_missed_total{trv=\"$TRV\"}[20m])*3600.0",
           "interval": "",
           "legendFormat": "{{trv}}",
           "refId": "A"
@@ -744,16 +744,19 @@
         "definition": "label_values(last_message_timestamp, trv)",
         "error": null,
         "hide": 0,
-        "includeAll": true,
+        "includeAll": false,
         "label": null,
         "multi": false,
         "name": "TRV",
         "options": [],
-        "query": "label_values(last_message_timestamp, trv)",
-        "refresh": 0,
+        "query": {
+          "query": "label_values(last_message_timestamp, trv)",
+          "refId": "StandardVariableQuery"
+        },
+        "refresh": 1,
         "regex": "",
         "skipUrlSync": false,
-        "sort": 0,
+        "sort": 1,
         "tagValuesQuery": "",
         "tags": [],
         "tagsQuery": "",
