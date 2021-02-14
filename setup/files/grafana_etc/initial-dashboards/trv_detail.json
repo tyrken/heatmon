@@ -588,7 +588,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(cumulative_valve_total{trv=\"$TRV\"}[20m])*3600",
+          "expr": "rate(cumulative_valve_total{trv=\"$TRV\"}[20m])*3600",
           "interval": "",
           "legendFormat": "{{trv}}",
           "refId": "A"
@@ -684,7 +684,7 @@
       "steppedLine": false,
       "targets": [
         {
-          "expr": "irate(messages_missed_total{trv=\"$TRV\"}[20m])*3600.0",
+          "expr": "rate(messages_missed_total{trv=\"$TRV\"}[20m])*3600.0",
           "interval": "",
           "legendFormat": "{{trv}}",
           "refId": "A"
