@@ -36,8 +36,8 @@ sudo systemctl restart prometheus
 
 # Install grafana for viewing stats & easy alerting
 sudo apt-get install -y adduser libfontconfig1
-curl -L https://dl.grafana.com/oss/release/grafana-rpi_7.4.1_armhf.deb -o /tmp/grafana.deb
-sudo dpkg -i /tmp/grafana.deb
+curl -L https://dl.grafana.com/oss/release/grafana-rpi_7.4.1_armhf.deb -o /tmp/grafana-rpi.deb
+sudo dpkg -i /tmp/grafana-rpi.deb
 
 sudo mkdir -p /etc/systemd/system/grafana-server.service.d
 sudo cp files/grafana_override.conf /etc/systemd/system/grafana-server.service.d/override.conf
