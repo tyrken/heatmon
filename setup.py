@@ -22,7 +22,7 @@ with open("LICENSE") as f:
 
 setup(
     name="heatmon",
-    version="0.1.0",
+    version="0.1.1",
     description="Heating statistics from OpenTRV",
     long_description=readme,
     author="Tristan Keen",
