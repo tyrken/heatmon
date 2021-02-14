@@ -41,7 +41,7 @@ sudo dpkg -i /tmp/grafana-rpi.deb
 
 sudo mkdir -p /etc/systemd/system/grafana-server.service.d
 sudo cp files/grafana_override.conf /etc/systemd/system/grafana-server.service.d/override.conf
-sudo cp -a files/grafana_etc/* /etc/grafana
+sudo cp -r files/grafana_etc/* /etc/grafana
 sudo systemctl daemon-reload
 sudo systemctl enable grafana-server
 sudo systemctl start grafana-server
