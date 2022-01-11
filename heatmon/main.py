@@ -22,7 +22,9 @@ from prometheus_client import start_http_server
 
 from .system import System
 
-METRICS_PORT = 8000
+# Warning, may want to switch METRICS_IP back to 127.0.0.1
+METRICS_IP = environ.get("METRICS_IP", "0.0.0.0")
+METRICS_PORT = int(environ.get("METRICS_PORT", "8000"))
 
 log_format = "%(asctime)s.%(msecs)03d %(levelname)-8s [%(filename)s:%(lineno)d] %(message)s"
 if "INVOCATION_ID" in environ:
@@ -30,7 +32,9 @@ if "INVOCATION_ID" in environ:
     log_format = "%(levelname)-8s [%(filename)s:%(lineno)d] %(message)s"
 
 logging.basicConfig(
-    format=log_format, datefmt="%Y-%m-%d %H:%M:%S", level=logging.DEBUG,
+    format=log_format,
+    datefmt="%Y-%m-%d %H:%M:%S",
+    level=logging.DEBUG,
 )
 
 
@@ -38,7 +42,7 @@ def main():
     logging.info("Heatmon starting...")
 
     # Expose prometheus metrics
-    start_http_server(METRICS_PORT)
+    start_http_server(addr=METRICS_IP, port=METRICS_PORT)
 
     try:
         system = System()

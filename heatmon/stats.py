@@ -19,7 +19,8 @@ import time
 from prometheus_client import Counter, Gauge
 
 RECENT_REPORTING_TRVS = Gauge(
-    "recent_reporting_trv_count", "Number of TRVs that were reporting in the last 10 minutes",
+    "recent_reporting_trv_count",
+    "Number of TRVs that were reporting in the last 10 minutes",
 )
 
 # Unless explicitly mentioned, all below metrics are labelled/split per TRV by TRV name
@@ -232,13 +233,19 @@ def get_stat_summaries():
     # Summary across all TRVs
     min_room_temp = 50
     max_room_temp = 0
-    for _, _, value in ROOM_TEMP._samples():
+    for _, _, value, _, _ in ROOM_TEMP._samples():
         min_room_temp = min(min_room_temp, value)
         max_room_temp = max(max_room_temp, value)
     temp_summary = "Waiting for room temps..."
     if min_room_temp < 50:
         temp_summary = f"Temps: {min_room_temp:.1f} - {max_room_temp:.1f}"
-    min_battery = min((value for _, _, value in BATTERY_VOLTAGE._samples()), default="...",)
-    max_valve = max((int(value * 100) for _, _, value in VALVE_OPEN._samples()), default="...",)
+    min_battery = min(
+        (value for _, _, value, _, _ in BATTERY_VOLTAGE._samples()),
+        default="...",
+    )
+    max_valve = max(
+        (int(value * 100) for _, _, value, _, _ in VALVE_OPEN._samples()),
+        default="...",
+    )
     battery_valve_summary = f"Bmin {min_battery}V, Vmax {max_valve}%"
     return temp_summary, battery_valve_summary

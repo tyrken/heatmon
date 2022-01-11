@@ -2,7 +2,7 @@ help: ## Prints this help message
 	@awk 'BEGIN {FS = ":.*?## "} /^[a-zA-Z0-9_-]+:.*?## / {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 INSTALL_DIR?=/opt/heatmon
-FONT_URL?=https://github.com/adafruit/Adafruit_CircuitPython_framebuf/raw/master/examples/font5x8.bin
+FONT_URL?=https://github.com/adafruit/Adafruit_CircuitPython_framebuf/raw/main/examples/font5x8.bin
 export PATH:=$(CURDIR)/.venv/bin:$(PATH)
 
 .venv:

@@ -9,13 +9,10 @@ echo "Starting $0 at $(date)"
 sudo apt-get update
 sudo apt-get upgrade -y
 
-# Python3 as default, needed for CircuitPython they say...
 sudo apt-get install -y git python3 python3-pip python3-venv python3-wheel
-sudo update-alternatives --install /usr/bin/python python $(which python2) 1
-sudo update-alternatives --install /usr/bin/python python $(which python3) 2
 
 # Enable I2C and SPI interfaces on RPi to talk to RFM69 board
-sudo apt-get install -y i2c-tools python-smbus
+sudo apt-get install -y i2c-tools python3-smbus
 sudo raspi-config nonint do_i2c 0
 sudo raspi-config nonint do_spi 0
 
